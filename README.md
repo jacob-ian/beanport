@@ -8,12 +8,20 @@ A CLI tool to import transaction data into a beancount ledger, written in Go.
 | ----------- | -------- |
 | Amex (CSV)  | amexcsv  |
 
-## Usage
+## Get Started
 
 ### Requirements
 
 - Beancount v2
 - Go v1.22
+
+### Installation
+
+```bash
+go install github.com/jacob-ian/beanport@latest
+```
+
+### Usage
 
 ```bash
 beanport
