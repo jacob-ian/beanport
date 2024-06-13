@@ -27,7 +27,11 @@ go install github.com/jacob-ian/beanport@latest
 beanport
 ```
 
+#### Arguments
+
 - `--provider`: The provider for the financial insitution
 - `--input`: The input file
 - `--output`: The output beancount file
 - `--defaults`: The location of your beanport defaults file
+- `--commodity`: The commodity of the account, e.g. AUD
+- `--account`: The name of the account that owns the transactions
