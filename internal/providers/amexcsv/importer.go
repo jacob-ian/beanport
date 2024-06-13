@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	ProviderAmexCSV beanport.Provider = "amexcsv"
+	Provider beanport.Provider = "amexcsv"
 )
 
 type ImporterConfig struct {

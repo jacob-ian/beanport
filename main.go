@@ -20,7 +20,6 @@ type Config struct {
 	DefaultsFilePath string
 	Provider         beanport.Provider
 	Commodity        string
-	Resume           bool
 }
 
 func main() {
@@ -36,7 +35,7 @@ func main() {
 
 	var importer beanport.Importer
 
-	if cfg.Provider == amexcsv.ProviderAmexCSV {
+	if cfg.Provider == amexcsv.Provider {
 		importer = amexcsv.NewImporter(data, &amexcsv.ImporterConfig{
 			Account:         cfg.Account,
 			NegativeAmounts: true,
@@ -73,8 +72,6 @@ func getArgs() (Config, error) {
 	flag.StringVar(&commodity, "commodity", "AUD", "AUD")
 	var account string
 	flag.StringVar(&account, "account", "", "The name of the statement's account")
-	var resume bool
-	flag.BoolVar(&resume, "resume", true, "Whether or not to resume an existing import session")
 	var defaults string
 	flag.StringVar(&defaults, "defaults", "beanport.yaml", "The defaults for beanport")
 
@@ -92,13 +89,16 @@ func getArgs() (Config, error) {
 		return Config{}, errors.New("'account' is required")
 	}
 
+	if commodity == "" {
+		return Config{}, errors.New("'commodity' is required")
+	}
+
 	return Config{
 		InputFilePath:    input,
 		Provider:         provider,
 		Account:          account,
 		OutputFilePath:   output,
 		Commodity:        commodity,
-		Resume:           resume,
 		DefaultsFilePath: defaults,
 	}, nil
 }
