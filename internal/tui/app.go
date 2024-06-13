@@ -11,7 +11,7 @@ import (
 	"os/exec"
 
 	"github.com/fatih/color"
-	"jacobmatthe.ws/beanport/internal/beanport"
+	"github.com/jacob-ian/beanport/internal/beanport"
 )
 
 type Config struct {

@@ -1,5 +1,5 @@
 // An AMEX CSV importer
-package amex
+package amexcsv
 
 import (
 	"bytes"
@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
-	"jacobmatthe.ws/beanport/internal/beanport"
+	"github.com/jacob-ian/beanport/internal/beanport"
 )
 
 const (
-	ProviderAmex beanport.Provider = "amex"
+	ProviderAmexCSV beanport.Provider = "amexcsv"
 )
 
 type ImporterConfig struct {

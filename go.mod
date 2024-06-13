@@ -1,4 +1,4 @@
-module jacobmatthe.ws/beanport
+module github.com/jacob-ian/beanport
 
 go 1.22
 

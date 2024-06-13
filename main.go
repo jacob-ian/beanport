@@ -8,9 +8,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"jacobmatthe.ws/beanport/internal/amex"
-	"jacobmatthe.ws/beanport/internal/beanport"
-	"jacobmatthe.ws/beanport/internal/tui"
+	"github.com/jacob-ian/beanport/internal/beanport"
+	"github.com/jacob-ian/beanport/internal/providers/amexcsv"
+	"github.com/jacob-ian/beanport/internal/tui"
 )
 
 type Config struct {
@@ -36,8 +36,8 @@ func main() {
 
 	var importer beanport.Importer
 
-	if cfg.Provider == amex.ProviderAmex {
-		importer = amex.NewImporter(data, &amex.ImporterConfig{
+	if cfg.Provider == amexcsv.ProviderAmexCSV {
+		importer = amexcsv.NewImporter(data, &amexcsv.ImporterConfig{
 			Account:         cfg.Account,
 			NegativeAmounts: true,
 			Commodity:       cfg.Commodity,
@@ -64,7 +64,7 @@ func main() {
 
 func getArgs() (Config, error) {
 	var provider beanport.Provider
-	flag.StringVar(&provider, "provider", "", "amex")
+	flag.StringVar(&provider, "provider", "", "amexcsv")
 	var input string
 	flag.StringVar(&input, "input", "", "amex.csv")
 	var output string
