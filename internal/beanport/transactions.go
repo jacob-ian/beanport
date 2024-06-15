@@ -8,6 +8,7 @@ type Provider = string
 
 // A transaction that hasn't been confirmed
 type PendingTransaction struct {
+	Index       int
 	Date        time.Time
 	Description string
 	Amount      float64

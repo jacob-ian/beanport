@@ -7,7 +7,7 @@ import "fmt"
 func FormatPending(txn *PendingTransaction) string {
 	return fmt.Sprintf(
 		"%s * \"%s REF:%s\"\n\t%s\t%.2f %s\n\t{}\t%.2f %s",
-		txn.Date.Format("2006-01-06"),
+		txn.Date.Format("2006-01-02"),
 		txn.Description,
 		txn.Reference,
 		txn.Account,
@@ -22,7 +22,7 @@ func FormatPending(txn *PendingTransaction) string {
 func FormatTransaction(txn *Transaction) string {
 	return fmt.Sprintf(
 		"%s * \"%s REF:%s\"\n\t%s\t%.2f %s\n\t%s\t%.2f %s\n\n",
-		txn.Date.Format("2006-01-06"),
+		txn.Date.Format("2006-01-02"),
 		txn.Description, txn.Reference,
 		txn.Account,
 		txn.Amount,

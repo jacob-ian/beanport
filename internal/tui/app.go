@@ -3,12 +3,13 @@ package tui
 
 import (
 	"bufio"
+	"cmp"
 	"errors"
 	"fmt"
-	"io/fs"
 	"log/slog"
 	"os"
 	"os/exec"
+	"slices"
 
 	"github.com/fatih/color"
 	"github.com/jacob-ian/beanport/internal/beanport"
@@ -88,10 +89,50 @@ func (app *Application) Run() error {
 		manual[vendor] = txns
 	}
 
-	if len(complete) > 0 {
-		bold.Printf("Automatically identified %v transactions.\n", len(complete))
+	bold.Printf("Automatically identified %v transactions.\n", len(complete))
+
+	if len(manual) > 0 {
+		app.runInteractiveAttributor(manual, complete)
 	}
 
+	slices.SortFunc(complete, func(a, b *beanport.Transaction) int {
+		return cmp.Compare(b.Index, a.Index)
+	})
+
+	bold.Printf("Outputting %v transactions to beancount file.\n", len(complete))
+
+	ledger := ""
+	for _, txn := range complete {
+		ledger += beanport.FormatTransaction(txn)
+	}
+
+	outFile, err := os.OpenFile(app.outputFilePath, os.O_RDWR|os.O_CREATE, 0640)
+	if err != nil {
+		return errors.Join(errors.New("Could not open output file"), err)
+	}
+
+	_, err = outFile.Write([]byte(ledger))
+	if err != nil {
+		return errors.Join(errors.New("Could not write transactions to file"), err)
+	}
+
+	if err := outFile.Close(); err != nil {
+		return errors.Join(errors.New("Could not close file"), err)
+	}
+
+	bold.Printf("Running bean-format %s\n", app.outputFilePath)
+	cmd := exec.Command("bean-format", app.outputFilePath)
+	if err := cmd.Run(); err != nil {
+		return errors.Join(errors.New("Formatting failed"), err)
+	}
+
+	bold.Println("Finished!")
+	return nil
+}
+
+// Runs the interactive manual vendor attribution TUI
+func (app *Application) runInteractiveAttributor(manual map[string][]*beanport.PendingTransaction, complete []*beanport.Transaction) {
+	bold := color.New().Add(color.Bold)
 	bold.Printf("%v vendor(s) requiring manual attribution.\n", len(manual))
 	fmt.Printf("Press return to begin...")
 	reader := bufio.NewReader(os.Stdin)
@@ -133,22 +174,4 @@ func (app *Application) Run() error {
 
 		idx++
 	}
-
-	var ledger []byte
-	for _, txn := range complete {
-		ledger = append(ledger, []byte(beanport.FormatTransaction(txn))...)
-	}
-
-	err = os.WriteFile(app.outputFilePath, ledger, fs.FileMode(os.O_RDWR))
-	if err != nil {
-		return errors.Join(err, errors.New("Could not write file"))
-	}
-
-	cmd := exec.Command(fmt.Sprintf("bean-format %s", app.outputFilePath))
-	err = cmd.Run()
-	if err != nil {
-		panic("Could not format: " + err.Error())
-	}
-
-	return nil
 }
