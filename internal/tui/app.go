@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"os/exec"
+	"slices"
 
 	"github.com/fatih/color"
 	"github.com/jacob-ian/beanport/internal/beanport"
@@ -90,8 +90,12 @@ func (app *Application) Run() error {
 	bold.Printf("Automatically identified %v transactions.\n", len(complete))
 
 	if len(manual) > 0 {
-		app.runManualAttribution(manual, complete)
+		app.runInteractiveAttributor(manual, complete)
 	}
+
+	slices.SortFunc(complete, func(a, b *beanport.Transaction) int {
+		return a.Date.Compare(b.Date)
+	})
 
 	bold.Printf("Outputting %v transactions to beancount file.\n", len(complete))
 
@@ -112,17 +116,11 @@ func (app *Application) Run() error {
 		return errors.Join(errors.New("Could not write transactions to file"), err)
 	}
 
-	bold.Println("Formatting output with bean-format")
-	cmd := exec.Command(fmt.Sprintf("bean-format %s", app.outputFilePath))
-	err = cmd.Run()
-	if err != nil {
-		panic("Could not format: " + err.Error())
-	}
-
 	return nil
 }
 
-func (app *Application) runManualAttribution(manual map[string][]*beanport.PendingTransaction, complete []*beanport.Transaction) {
+// Runs the interactive manual vendor attribution TUI
+func (app *Application) runInteractiveAttributor(manual map[string][]*beanport.PendingTransaction, complete []*beanport.Transaction) {
 	bold := color.New().Add(color.Bold)
 	bold.Printf("%v vendor(s) requiring manual attribution.\n", len(manual))
 	fmt.Printf("Press return to begin...")
