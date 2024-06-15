@@ -3,10 +3,12 @@ package tui
 
 import (
 	"bufio"
+	"cmp"
 	"errors"
 	"fmt"
 	"log/slog"
 	"os"
+	"os/exec"
 	"slices"
 
 	"github.com/fatih/color"
@@ -94,7 +96,7 @@ func (app *Application) Run() error {
 	}
 
 	slices.SortFunc(complete, func(a, b *beanport.Transaction) int {
-		return a.Date.Compare(b.Date)
+		return cmp.Compare(b.Index, a.Index)
 	})
 
 	bold.Printf("Outputting %v transactions to beancount file.\n", len(complete))
@@ -109,13 +111,22 @@ func (app *Application) Run() error {
 		return errors.Join(errors.New("Could not open output file"), err)
 	}
 
-	defer outFile.Close()
-
 	_, err = outFile.Write([]byte(ledger))
 	if err != nil {
 		return errors.Join(errors.New("Could not write transactions to file"), err)
 	}
 
+	if err := outFile.Close(); err != nil {
+		return errors.Join(errors.New("Could not close file"), err)
+	}
+
+	bold.Printf("Running bean-format %s\n", app.outputFilePath)
+	cmd := exec.Command("bean-format", app.outputFilePath)
+	if err := cmd.Run(); err != nil {
+		return errors.Join(errors.New("Formatting failed"), err)
+	}
+
+	bold.Println("Finished!")
 	return nil
 }
 

@@ -114,7 +114,7 @@ func (ai *amexImporter) Import() ([]*beanport.PendingTransaction, error) {
 
 	var txns []*beanport.PendingTransaction
 	var parseErr error
-	for _, row := range rows {
+	for i, row := range rows {
 		split := strings.Split(string(row), ",")
 		date, err := time.Parse("02/01/2006", split[0])
 		if err != nil {
@@ -129,6 +129,7 @@ func (ai *amexImporter) Import() ([]*beanport.PendingTransaction, error) {
 		}
 		reference := split[13]
 		txns = append(txns, &beanport.PendingTransaction{
+			Index:       i,
 			Account:     ai.config.Account,
 			Date:        date,
 			Description: description,
