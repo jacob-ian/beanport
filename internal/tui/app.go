@@ -5,7 +5,6 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"io/fs"
 	"log/slog"
 	"os"
 	"os/exec"
@@ -88,10 +87,43 @@ func (app *Application) Run() error {
 		manual[vendor] = txns
 	}
 
-	if len(complete) > 0 {
-		bold.Printf("Automatically identified %v transactions.\n", len(complete))
+	bold.Printf("Automatically identified %v transactions.\n", len(complete))
+
+	if len(manual) > 0 {
+		app.runManualAttribution(manual, complete)
 	}
 
+	bold.Printf("Outputting %v transactions to beancount file.\n", len(complete))
+
+	ledger := ""
+	for _, txn := range complete {
+		ledger += beanport.FormatTransaction(txn)
+	}
+
+	outFile, err := os.OpenFile(app.outputFilePath, os.O_RDWR|os.O_CREATE, 0640)
+	if err != nil {
+		return errors.Join(errors.New("Could not open output file"), err)
+	}
+
+	defer outFile.Close()
+
+	_, err = outFile.Write([]byte(ledger))
+	if err != nil {
+		return errors.Join(errors.New("Could not write transactions to file"), err)
+	}
+
+	bold.Println("Formatting output with bean-format")
+	cmd := exec.Command(fmt.Sprintf("bean-format %s", app.outputFilePath))
+	err = cmd.Run()
+	if err != nil {
+		panic("Could not format: " + err.Error())
+	}
+
+	return nil
+}
+
+func (app *Application) runManualAttribution(manual map[string][]*beanport.PendingTransaction, complete []*beanport.Transaction) {
+	bold := color.New().Add(color.Bold)
 	bold.Printf("%v vendor(s) requiring manual attribution.\n", len(manual))
 	fmt.Printf("Press return to begin...")
 	reader := bufio.NewReader(os.Stdin)
@@ -133,22 +165,4 @@ func (app *Application) Run() error {
 
 		idx++
 	}
-
-	var ledger []byte
-	for _, txn := range complete {
-		ledger = append(ledger, []byte(beanport.FormatTransaction(txn))...)
-	}
-
-	err = os.WriteFile(app.outputFilePath, ledger, fs.FileMode(os.O_RDWR))
-	if err != nil {
-		return errors.Join(err, errors.New("Could not write file"))
-	}
-
-	cmd := exec.Command(fmt.Sprintf("bean-format %s", app.outputFilePath))
-	err = cmd.Run()
-	if err != nil {
-		panic("Could not format: " + err.Error())
-	}
-
-	return nil
 }
