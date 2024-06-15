@@ -126,6 +126,11 @@ func (app *Application) Run() error {
 			complete = append(complete, txn)
 		}
 
+		err = app.defaults.WriteToFile()
+		if err != nil {
+			app.logger.Warn("Could not save vendor to defaults file.\n")
+		}
+
 		idx++
 	}
 
