@@ -127,13 +127,18 @@ func (ai *amexImporter) Import() ([]*beanport.PendingTransaction, error) {
 			parseErr = err
 			break
 		}
+
+		if ai.config.NegativeAmounts {
+			amount = -amount
+		}
+
 		reference := split[13]
 		txns = append(txns, &beanport.PendingTransaction{
 			Index:       i,
 			Account:     ai.config.Account,
 			Date:        date,
 			Description: description,
-			Amount:      0 - amount,
+			Amount:      amount,
 			Reference:   reference,
 			Commodity:   ai.config.Commodity,
 		})
