@@ -4,9 +4,10 @@ A CLI tool to import transaction data into a beancount ledger, written in Go.
 
 ## Financial Institution Support
 
-| Institution | Provider |
-| ----------- | -------- |
-| Amex (CSV)  | amexcsv  |
+| Institution    | Provider |
+| -------------- | -------- |
+| Amex (CSV)     | amexcsv  |
+| Bank Australia | ofx      |
 
 ## Get Started
 

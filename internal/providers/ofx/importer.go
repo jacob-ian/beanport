@@ -2,10 +2,11 @@ package ofx
 
 import (
 	"bytes"
-	"crypto/md5"
 	"errors"
 	"fmt"
+	"slices"
 	"strconv"
+	"strings"
 
 	"github.com/aclindsa/ofxgo"
 	"github.com/jacob-ian/beanport/internal/beanport"
@@ -43,41 +44,26 @@ func (imp *Importer) Import() ([]*beanport.PendingTransaction, error) {
 
 	txns := root.BankTranList.Transactions
 	var output []*beanport.PendingTransaction
-	for i, txn := range txns {
-		var description string
-		if txn.Payee != nil {
-			description = txn.Payee.Name.String()
-		} else if txn.Name.String() != "" {
-			description = txn.Name.String()
-		} else if txn.Memo.String() != "" {
-			description = txn.Memo.String()
-		} else {
-			err = fmt.Errorf("No available description for FITID %v", txn.FiTID.String())
-			break
-		}
+	var parseErr error
 
-		if description[:5] == "VISA-" {
-			description = description[5:]
+	for i, txn := range txns {
+		description, err := description(txn)
+		if err != nil {
+			parseErr = errors.Join(fmt.Errorf("Could not generate description"), err)
+			break
 		}
 
 		amt, err := strconv.ParseFloat(txn.TrnAmt.String(), 64)
 		if err != nil {
-			err = errors.Join(fmt.Errorf("Could not parse transaction amount for FITID %v: '%s'", txn.FiTID.String(), description), err)
+			parseErr = errors.Join(fmt.Errorf("Could not parse transaction amount for FITID %v: '%s'", txn.FiTID.String(), description), err)
 			break
 		}
 
-		date := txn.DtPosted.Time
-
-		var ref string
-
-		if txn.CheckNum.String() != "" {
-			ref = txn.CheckNum.String()
-		} else if txn.RefNum.String() != "" {
-			ref = txn.RefNum.String()
-		} else {
-			input := fmt.Sprintf("%v:%s:%.2f", date.Format("2006-01-02"), description, amt)
-			ref = fmt.Sprintf("%x", md5.Sum([]byte(input)))
+		if amt == 0.00 {
+			continue
 		}
+
+		ref := reference(txn, description, amt)
 
 		output = append(output, &beanport.PendingTransaction{
 			Index:       i,
@@ -90,7 +76,7 @@ func (imp *Importer) Import() ([]*beanport.PendingTransaction, error) {
 		})
 	}
 
-	if err != nil {
+	if parseErr != nil {
 		return nil, errors.Join(errors.New("Could not read transactions"), err)
 	}
 

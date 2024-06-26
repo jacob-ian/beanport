@@ -23,7 +23,8 @@ func FormatTransaction(txn *Transaction) string {
 	return fmt.Sprintf(
 		"%s * \"%s REF:%s\"\n\t%s\t%.2f %s\n\t%s\t%.2f %s\n\n",
 		txn.Date.Format("2006-01-02"),
-		txn.Description, txn.Reference,
+		txn.Description,
+		txn.Reference,
 		txn.Account,
 		txn.Amount,
 		txn.Commodity,
