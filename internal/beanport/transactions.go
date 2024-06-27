@@ -3,9 +3,6 @@ package beanport
 
 import "time"
 
-// An import provider
-type Provider = string
-
 // A transaction that hasn't been confirmed
 type PendingTransaction struct {
 	Index       int
@@ -21,9 +18,4 @@ type PendingTransaction struct {
 type Transaction struct {
 	PendingTransaction
 	OppositeAccount string
-}
-
-// The interface for a data importer
-type Importer interface {
-	Import() ([]*PendingTransaction, error)
 }

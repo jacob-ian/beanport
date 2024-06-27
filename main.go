@@ -10,6 +10,7 @@ import (
 
 	"github.com/jacob-ian/beanport/internal/beanport"
 	"github.com/jacob-ian/beanport/internal/providers/amexcsv"
+	"github.com/jacob-ian/beanport/internal/providers/ofx"
 	"github.com/jacob-ian/beanport/internal/tui"
 )
 
@@ -41,6 +42,16 @@ func main() {
 			NegativeAmounts: true,
 			Commodity:       cfg.Commodity,
 		})
+	}
+	if cfg.Provider == ofx.Provider {
+		importer = ofx.NewImporter(data, &ofx.ImporterConfig{
+			Account:   cfg.Account,
+			Commodity: cfg.Commodity,
+		})
+	}
+
+	if importer == nil {
+		panic("Invalid provider selected")
 	}
 
 	defaults, err := beanport.UserDefaultsFromFile(cfg.DefaultsFilePath)
