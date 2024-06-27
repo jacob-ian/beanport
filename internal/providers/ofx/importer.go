@@ -4,9 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"slices"
 	"strconv"
-	"strings"
 
 	"github.com/aclindsa/ofxgo"
 	"github.com/jacob-ian/beanport/internal/beanport"

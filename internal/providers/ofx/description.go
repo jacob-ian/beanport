@@ -34,13 +34,19 @@ func descriptionFromMemo(memo string) string {
 	}
 
 	var output []string
-	for _, f := range fields {
+	for i, f := range fields {
 		if strings.Contains(f, "Ref") {
 			continue
 		}
-		if strings.Contains(f, "Apple Pay") {
+
+		if i > 0 && fields[i-1] == "Apple" && f == "Pay" {
 			continue
 		}
+
+		if i < len(fields)-1 && f == "Apple" && fields[i+1] == "Pay" {
+			continue
+		}
+
 		output = append(output, f)
 	}
 
